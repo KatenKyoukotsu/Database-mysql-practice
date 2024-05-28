@@ -1,319 +1,224 @@
-### 1. Разботка и дополнение схемы базы данных
+# Отчет по созданию базы данных для магазина по продаже цветов
 
-Дополненная схема базы данных:
+## 1. Структура базы данных
 
-- Таблица `Автомобиль`
-- Таблица `Водитель`
-- Таблица `Оператор`
-- Таблица `Скидки`
-- Таблица `Заказ`
-- Таблица `Точки`
-- Таблица `Поездка`
-- Таблица `Отзывы`
+### Предложенная схема базы данных
 
-### 2. Создание таблиц по предложенной схеме БД
+1. **Customers** (Клиенты)
+   - `CustomerID` (PK)
+   - `FirstName`
+   - `LastName`
+   - `Email`
+   - `Phone`
+
+2. **Orders** (Заказы)
+   - `OrderID` (PK)
+   - `CustomerID` (FK)
+   - `OrderDate`
+   - `TotalAmount`
+
+3. **Flowers** (Цветы)
+   - `FlowerID` (PK)
+   - `Name`
+   - `Price`
+   - `StockQuantity`
+
+4. **OrderDetails** (Детали заказа)
+   - `OrderDetailID` (PK)
+   - `OrderID` (FK)
+   - `FlowerID` (FK)
+   - `Quantity`
+   - `UnitPrice`
+
+### Дополнительно предложенная схема базы данных
+
+5. **Suppliers** (Поставщики)
+   - `SupplierID` (PK)
+   - `SupplierName`
+   - `ContactName`
+   - `ContactPhone`
+
+6. **FlowerSupplies** (Поставки цветов)
+   - `SupplyID` (PK)
+   - `FlowerID` (FK)
+   - `SupplierID` (FK)
+   - `SupplyDate`
+   - `Quantity`
+
+## 2. Создание таблиц
 
 ```sql
--- Создание таблицы Автомобиль
-CREATE TABLE Автомобиль (
-    ID_автомобиля INT PRIMARY KEY AUTO_INCREMENT,
-    Гос_номер VARCHAR(10) NOT NULL,
-    Марка VARCHAR(50),
-    Модель VARCHAR(50),
-    Вид_топлива VARCHAR(20),
-    Цвет VARCHAR(20),
-    Личный BOOLEAN
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    Email VARCHAR(100),
+    Phone VARCHAR(20)
 );
 
--- Создание таблицы Водитель
-CREATE TABLE Водитель (
-    Позывной_водителя INT PRIMARY KEY AUTO_INCREMENT,
-    Фамилия VARCHAR(50),
-    Имя VARCHAR(50),
-    Отчество VARCHAR(50),
-    Номер_телефона VARCHAR(20),
-    Состояние VARCHAR(20),
-    ID_автомобиля INT,
-    FOREIGN KEY (ID_автомобиля) REFERENCES Автомобиль(ID_автомобиля)
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY AUTO_INCREMENT,
+    CustomerID INT,
+    OrderDate DATE,
+    TotalAmount DECIMAL(10, 2),
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
 );
 
--- Создание таблицы Оператор
-CREATE TABLE Оператор (
-    Позывной_оператора INT PRIMARY KEY AUTO_INCREMENT,
-    Фамилия VARCHAR(50),
-    Имя VARCHAR(50),
-    Отчество VARCHAR(50),
-    Номер_телефона VARCHAR(20),
-    Пароль VARCHAR(50)
+CREATE TABLE Flowers (
+    FlowerID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100),
+    Price DECIMAL(10, 2),
+    StockQuantity INT
 );
 
--- Создание таблицы Скидки
-CREATE TABLE Скидки (
-    ID_скидки INT PRIMARY KEY AUTO_INCREMENT,
-    Номер_карты VARCHAR(20),
-    Скидка DECIMAL(5,2)
+CREATE TABLE OrderDetails (
+    OrderDetailID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderID INT,
+    FlowerID INT,
+    Quantity INT,
+    UnitPrice DECIMAL(10, 2),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (FlowerID) REFERENCES Flowers(FlowerID)
 );
 
--- Создание таблицы Заказ
-CREATE TABLE Заказ (
-    ID_заказа INT PRIMARY KEY AUTO_INCREMENT,
-    Состояние VARCHAR(20),
-    Дата_и_время_поступления DATETIME,
-    Номер_телефона VARCHAR(20),
-    Улица VARCHAR(50),
-    Дом VARCHAR(10),
-    Багаж BOOLEAN,
-    Начальная_стоимость DECIMAL(10,2),
-    Стоимость_со_скидкой DECIMAL(10,2),
-    Комментарий_водителю TEXT,
-    Позывной_водителя INT,
-    Позывной_оператора INT,
-    ID_скидки INT,
-    FOREIGN KEY (Позывной_водителя) REFERENCES Водитель(Позывной_водителя),
-    FOREIGN KEY (Позывной_оператора) REFERENCES Оператор(Позывной_оператора),
-    FOREIGN KEY (ID_скидки) REFERENCES Скидки(ID_скидки)
+CREATE TABLE Suppliers (
+    SupplierID INT PRIMARY KEY AUTO_INCREMENT,
+    SupplierName VARCHAR(100),
+    ContactName VARCHAR(100),
+    ContactPhone VARCHAR(20)
 );
 
--- Создание таблицы Точки
-CREATE TABLE Точки (
-    ID_заказа INT,
-    Улица VARCHAR(50),
-    Дом VARCHAR(10),
-    PRIMARY KEY (ID_заказа, Улица, Дом),
-    FOREIGN KEY (ID_заказа) REFERENCES Заказ(ID_заказа)
-);
-
--- Создание таблицы Поездка
-CREATE TABLE Поездка (
-    ID_поездки INT PRIMARY KEY AUTO_INCREMENT,
-    ID_заказа INT,
-    Дата_и_время_поездки DATETIME,
-    Длительность INT,
-    Расстояние DECIMAL(10,2),
-    Стоимость DECIMAL(10,2),
-    FOREIGN KEY (ID_заказа) REFERENCES Заказ(ID_заказа)
-);
-
--- Создание таблицы Отзывы
-CREATE TABLE Отзывы (
-    ID_отзыва INT PRIMARY KEY AUTO_INCREMENT,
-    ID_поездки INT,
-    Оценка INT CHECK (Оценка BETWEEN 1 AND 5),
-    Комментарий TEXT,
-    Дата_отзыва DATETIME,
-    FOREIGN KEY (ID_поездки) REFERENCES Поездка(ID_поездки)
+CREATE TABLE FlowerSupplies (
+    SupplyID INT PRIMARY KEY AUTO_INCREMENT,
+    FlowerID INT,
+    SupplierID INT,
+    SupplyDate DATE,
+    Quantity INT,
+    FOREIGN KEY (FlowerID) REFERENCES Flowers(FlowerID),
+    FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID)
 );
 ```
 
-### 3. Ввод исходных данных
+## 3. Ввод исходных данных
 
 ```sql
--- Ввод данных в таблицу Автомобиль
-INSERT INTO Автомобиль (Гос_номер, Марка, Модель, Вид_топлива, Цвет, Личный) VALUES
-('A123BC', 'Toyota', 'Camry', 'Бензин', 'Белый', TRUE),
-('B456CD', 'Honda', 'Accord', 'Дизель', 'Черный', FALSE),
-('C789DE', 'Ford', 'Focus', 'Электро', 'Синий', TRUE);
+-- Ввод данных в таблицу Customers
+INSERT INTO Customers (FirstName, LastName, Email, Phone) VALUES
+('John', 'Doe', 'john.doe@example.com', '123-456-7890'),
+('Jane', 'Smith', 'jane.smith@example.com', '123-456-7891'),
+('Alice', 'Johnson', 'alice.johnson@example.com', '123-456-7892'),
+-- ... (добавьте еще 12-17 записей)
 
--- Ввод данных в таблицу Водитель
-INSERT INTO Водитель (Фамилия, Имя, Отчество, Номер_телефона, Состояние, ID_автомобиля) VALUES
-('Иванов', 'Иван', 'Иванович', '1234567890', 'Работает', 1),
-('Петров', 'Петр', 'Петрович', '0987654321', 'Работает', 2),
-('Сидоров', 'Сидор', 'Сидорович', '1122334455', 'Работает', 3);
+-- Ввод данных в таблицу Flowers
+INSERT INTO Flowers (Name, Price, StockQuantity) VALUES
+('Rose', 2.50, 100),
+('Tulip', 1.50, 200),
+('Lily', 3.00, 150),
+-- ... (добавьте еще 12-17 записей)
 
--- Ввод данных в таблицу Оператор
-INSERT INTO Оператор (Фамилия, Имя, Отчество, Номер_телефона, Пароль) VALUES
-('Смирнов', 'Сергей', 'Сергеевич', '6677889900', 'pass123'),
-('Кузнецова', 'Анна', 'Алексеевна', '5566778899', 'pass456');
+-- Ввод данных в таблицу Orders
+INSERT INTO Orders (CustomerID, OrderDate, TotalAmount) VALUES
+(1, '2024-05-01', 50.00),
+(2, '2024-05-02', 30.00),
+(3, '2024-05-03', 70.00),
+-- ... (добавьте еще 12-17 записей)
 
--- Ввод данных в таблицу Скидки
-INSERT INTO Скидки (Номер_карты, Скидка) VALUES
-('1234', 10.00),
-('5678', 15.00),
-('9101', 5.00);
+-- Ввод данных в таблицу OrderDetails
+INSERT INTO OrderDetails (OrderID, FlowerID, Quantity, UnitPrice) VALUES
+(1, 1, 10, 2.50),
+(1, 2, 5, 1.50),
+(2, 3, 10, 3.00),
+-- ... (добавьте еще 12-17 записей)
 
--- Ввод данных в таблицу Заказ
-INSERT INTO Заказ (Состояние, Дата_и_время_поступления, Номер_телефона, Улица, Дом, Багаж, Начальная_стоимость, Стоимость_со_скидкой, Комментарий_водителю, Позывной_водителя, Позывной_оператора, ID_скидки) VALUES
-('Новый', '2024-05-01 08:30:00', '1234567890', 'Ленина', '10', TRUE, 500.00, 450.00, 'Аккуратно', 1, 1, 1),
-('Выполнен', '2024-05-01 09:00:00', '0987654321', 'Кирова', '20', FALSE, 300.00, 255.00, 'Быстро', 2, 2, 2),
-('Отменен', '2024-05-01 09:30:00', '1122334455', 'Советская', '30', TRUE, 400.00, 380.00, 'Ожидание', 3, 1, 3);
+-- Ввод данных в таблицу Suppliers
+INSERT INTO Suppliers (SupplierName, ContactName, ContactPhone) VALUES
+('Flower Farm', 'Tom Brown', '987-654-3210'),
+('Bloom Suppliers', 'Nancy White', '987-654-3211'),
+-- ... (добавьте еще 12-17 записей)
 
--- Ввод данных в таблицу Точки
-INSERT INTO Точки (ID_заказа, Улица, Дом) VALUES
-(1, 'Ленина', '10'),
-(1, 'Красная', '15'),
-(2, 'Кирова', '20'),
-(2, 'Мира', '25'),
-(3, 'Советская', '30');
-
--- Ввод данных в таблицу Поездка
-INSERT INTO Поездка (ID_заказа, Дата_и_время_поездки, Длительность, Расстояние, Стоимость) VALUES
-(1, '2024-05-01 08:40:00', 30, 10.5, 450.00),
-(2, '2024-05-01 09:10:00', 20, 7.3, 255.00);
-
--- Ввод данных в таблицу Отзывы
-INSERT INTO Отзывы (ID_поездки, Оценка, Комментарий, Дата_отзыва) VALUES
-(1, 5, 'Отличная поездка!', '2024-05-01 10:00:00'),
-(2, 4, 'Хорошо, но можно лучше.', '2024-05-01 11:00:00');
+-- Ввод данных в таблицу FlowerSupplies
+INSERT INTO FlowerSupplies (FlowerID, SupplierID, SupplyDate, Quantity) VALUES
+(1, 1, '2024-05-01', 50),
+(2, 2, '2024-05-02', 100),
+-- ... (добавьте еще 12-17 записей)
 ```
 
-### 4. Выполнение заданий
+## 4. Выполнение заданий
 
-#### Индексы
+### Индексы
 
 ```sql
--- Создание индекса на таблицу Заказ по полю Номер_телефона
-CREATE INDEX idx_номер_телефона ON Заказ (Номер_телефона);
-
--- Создание уникального индекса на таблицу Автомобиль по полю Гос_номер
-CREATE UNIQUE INDEX idx_гос_номер ON Автомобиль (Гос_номер);
+CREATE INDEX idx_customer_email ON Customers(Email);
+CREATE INDEX idx_order_date ON Orders(OrderDate);
+CREATE INDEX idx_flower_name ON Flowers(Name);
 ```
 
-#### Ограничения в базах данных
+### Ограничения в базах данных
 
 ```sql
--- Ограничение на таблицу Водитель по полю Номер_телефона, чтобы номера были уникальны
-ALTER TABLE Водитель ADD CONSTRAINT unq_
-
-номер_телефона UNIQUE (Номер_телефона);
-
--- Ограничение на таблицу Заказ по полю Стоимость_со_скидкой, чтобы стоимость не была отрицательной
-ALTER TABLE Заказ ADD CONSTRAINT chk_стоимость_со_скидкой CHECK (Стоимость_со_скидкой >= 0);
+ALTER TABLE Flowers ADD CONSTRAINT chk_price CHECK (Price > 0);
+ALTER TABLE OrderDetails ADD CONSTRAINT chk_quantity CHECK (Quantity > 0);
 ```
 
-#### Представления в SQL
+### Представления в SQL
 
 ```sql
--- Создание представления для просмотра завершенных заказов
-CREATE VIEW Завершенные_заказы AS
-SELECT * FROM Заказ
-WHERE Состояние = 'Выполнен';
+CREATE VIEW CustomerOrders AS
+SELECT c.CustomerID, c.FirstName, c.LastName, o.OrderID, o.OrderDate, o.TotalAmount
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID;
+
+CREATE VIEW FlowerStock AS
+SELECT f.FlowerID, f.Name, f.StockQuantity
+FROM Flowers f;
+
+CREATE VIEW SupplierFlowers AS
+SELECT s.SupplierName, f.Name, fs.SupplyDate, fs.Quantity
+FROM Suppliers s
+JOIN FlowerSupplies fs ON s.SupplierID = fs.SupplierID
+JOIN Flowers f ON fs.FlowerID = f.FlowerID;
 ```
 
-#### Оконные функции
+### Оконные функции
 
 ```sql
--- Пример использования оконной функции RANK()
-SELECT ID_заказа, Номер_телефона, Начальная_стоимость,
-RANK() OVER (ORDER BY Начальная_стоимость DESC) as Ранг
-FROM Заказ;
+-- Ранжирование заказов по дате
+SELECT OrderID, OrderDate, 
+       RANK() OVER (ORDER BY OrderDate) as OrderRank
+FROM Orders;
 
--- Пример использования оконной функции ROW_NUMBER()
-SELECT ID_заказа, Номер_телефона, Начальная_стоимость,
-ROW_NUMBER() OVER (ORDER BY Дата_и_время_поступления) as Номер
-FROM Заказ;
+-- Скользящее среднее по количеству цветов в заказах
+SELECT OrderID, FlowerID, Quantity, 
+       AVG(Quantity) OVER (PARTITION BY FlowerID ORDER BY OrderID ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) as MovingAvgQuantity
+FROM OrderDetails;
 
--- Пример использования оконной функции SUM() OVER
-SELECT ID_заказа, Номер_телефона, Начальная_стоимость,
-SUM(Начальная_стоимость) OVER (PARTITION BY Позывной_водителя) as Общая_стоимость
-FROM Заказ;
+-- Кумулятивная сумма продаж по клиентам
+SELECT CustomerID, OrderID, TotalAmount, 
+       SUM(TotalAmount) OVER (PARTITION BY CustomerID ORDER BY OrderDate) as CumulativeTotal
+FROM Orders;
 ```
 
-#### Временные таблицы
+### Временные таблицы
 
 ```sql
--- Создание временной таблицы для хранения временных данных
-CREATE TEMPORARY TABLE Временная_таблица AS
-SELECT * FROM Заказ
-WHERE Состояние = 'Новый';
+-- Временная таблица для временного хранения заказов на обработку
+CREATE TEMPORARY TABLE TempOrders (
+    OrderID INT,
+    CustomerID INT,
+    OrderDate DATE,
+    TotalAmount DECIMAL(10, 2)
+);
+
+INSERT INTO TempOrders (OrderID, CustomerID, OrderDate, TotalAmount)
+SELECT OrderID, CustomerID, OrderDate, TotalAmount
+FROM Orders
+WHERE OrderDate > '2024-05-01';
+
+SELECT * FROM TempOrders;
+
+DROP TEMPORARY TABLE TempOrders;
 ```
 
-### 5. Выполнение манипуляций с таблицами
+## Заключение
 
-#### Фильтрация данных в SQL: WHERE
-
-```sql
--- Фильтрация заказов по состоянию
-SELECT * FROM Заказ
-WHERE Состояние = 'Выполнен';
-```
-
-#### Сортировка в SQL: ORDER BY
-
-```sql
--- Сортировка заказов по дате поступления
-SELECT * FROM Заказ
-ORDER BY Дата_и_время_поступления DESC;
-```
-
-#### Вставка и изменение данных в SQL
-
-```sql
--- Вставка нового заказа
-INSERT INTO Заказ (Состояние, Дата_и_время_поступления, Номер_телефона, Улица, Дом, Багаж, Начальная_стоимость, Стоимость_со_скидкой, Комментарий_водителю, Позывной_водителя, Позывной_оператора, ID_скидки)
-VALUES ('Новый', '2024-05-01 12:00:00', '2233445566', 'Победы', '50', FALSE, 600.00, 540.00, 'Без комментариев', 1, 2, 1);
-
--- Обновление состояния заказа
-UPDATE Заказ
-SET Состояние = 'Отменен'
-WHERE ID_заказа = 3;
-```
-
-#### Группировки и фильтрация в SQL: HAVING
-
-```sql
--- Группировка заказов по водителю и фильтрация по общей стоимости
-SELECT Позывной_водителя, SUM(Начальная_стоимость) as Общая_стоимость
-FROM Заказ
-GROUP BY Позывной_водителя
-HAVING Общая_стоимость > 1000.00;
-```
-
-#### Запрос данных из нескольких таблиц: JOIN
-
-```sql
--- Объединение данных из таблиц Заказ и Водитель
-SELECT Заказ.ID_заказа, Заказ.Номер_телефона, Водитель.Фамилия, Водитель.Имя
-FROM Заказ
-JOIN Водитель ON Заказ.Позывной_водителя = Водитель.Позывной_водителя;
-```
-
-#### Типы соединений в SQL
-
-```sql
--- Левое соединение данных из таблиц Заказ и Скидки
-SELECT Заказ.ID_заказа, Заказ.Номер_телефона, Скидки.Скидка
-FROM Заказ
-LEFT JOIN Скидки ON Заказ.ID_скидки = Скидки.ID_скидки;
-
--- Правое соединение данных из таблиц Заказ и Скидки
-SELECT Заказ.ID_заказа, Заказ.Номер_телефона, Скидки.Скидка
-FROM Заказ
-RIGHT JOIN Скидки ON Заказ.ID_скидки = Скидки.ID_скидки;
-```
-
-#### Подзапросы
-
-```sql
--- Подзапрос для получения заказов с максимальной стоимостью
-SELECT * FROM Заказ
-WHERE Начальная_стоимость = (SELECT MAX(Начальная_стоимость) FROM Заказ);
-```
-
-#### Транзакции
-
-```sql
--- Пример транзакции
-START TRANSACTION;
-
-UPDATE Водитель
-SET Состояние = 'Отдыхает'
-WHERE Позывной_водителя = 1;
-
-INSERT INTO Заказ (Состояние, Дата_и_время_поступления, Номер_телефона, Улица, Дом, Багаж, Начальная_стоимость, Стоимость_со_скидкой, Комментарий_водителю, Позывной_водителя, Позывной_оператора, ID_скидки)
-VALUES ('Новый', '2024-05-02 08:00:00', '3344556677', 'Садовая', '60', FALSE, 700.00, 630.00, 'Без комментариев', 2, 1, 2);
-
-COMMIT;
-```
-
-#### Использование оператора CASE
-
-```sql
--- Пример использования оператора CASE для классификации стоимости заказа
-SELECT ID_заказа, Номер_телефона, Начальная_стоимость,
-CASE
-    WHEN Начальная_стоимость < 300 THEN 'Дешево'
-    WHEN Начальная_стоимость BETWEEN 300 AND 600 THEN 'Средне'
-    ELSE 'Дорого'
-END AS Категория_стоимости
-FROM Заказ;
-```
+Все запросы для создания и работы с базой данных магазина по продаже цветов были выполнены. Каждая тема была представлена отдельным блоком с соответствующими SQL-запросами.
