@@ -1,319 +1,347 @@
-### 1. Разботка и дополнение схемы базы данных
+# Отчет по Базам Данных: Железная Дорога
 
-Дополненная схема базы данных:
+## 1. Разбор и предложение схемы базы данных
 
-- Таблица `Автомобиль`
-- Таблица `Водитель`
-- Таблица `Оператор`
-- Таблица `Скидки`
-- Таблица `Заказ`
-- Таблица `Точки`
-- Таблица `Поездка`
-- Таблица `Отзывы`
+### Схема базы данных
 
-### 2. Создание таблиц по предложенной схеме БД
+Предположим, что исходная схема базы данных выглядит следующим образом:
+
+- Таблица `Passengers` (Пассажиры):
+  - `PassengerID` (PK)
+  - `Name`
+  - `Surname`
+  - `BirthDate`
+  - `Gender`
+
+- Таблица `Tickets` (Билеты):
+  - `TicketID` (PK)
+  - `PassengerID` (FK)
+  - `TrainID` (FK)
+  - `SeatNumber`
+  - `DateOfJourney`
+  - `Price`
+
+- Таблица `Trains` (Поезда):
+  - `TrainID` (PK)
+  - `TrainNumber`
+  - `Route`
+
+### Предложенная схема базы данных
+
+Предложенная схема будет расширена для включения информации о станциях и маршрутах:
+
+- Таблица `Passengers` (Пассажиры):
+  - `PassengerID` (PK)
+  - `Name`
+  - `Surname`
+  - `BirthDate`
+  - `Gender`
+  - `PhoneNumber`
+  - `Email`
+
+- Таблица `Tickets` (Билеты):
+  - `TicketID` (PK)
+  - `PassengerID` (FK)
+  - `TrainID` (FK)
+  - `SeatNumber`
+  - `DateOfJourney`
+  - `Price`
+  - `DepartureStationID` (FK)
+  - `ArrivalStationID` (FK)
+
+- Таблица `Trains` (Поезда):
+  - `TrainID` (PK)
+  - `TrainNumber`
+  - `Route`
+
+- Таблица `Stations` (Станции):
+  - `StationID` (PK)
+  - `StationName`
+  - `City`
+  - `State`
+
+- Таблица `Routes` (Маршруты):
+  - `RouteID` (PK)
+  - `TrainID` (FK)
+  - `StationID` (FK)
+  - `ArrivalTime`
+  - `DepartureTime`
+
+## 2. Создание таблиц по предложенной схеме БД
 
 ```sql
--- Создание таблицы Автомобиль
-CREATE TABLE Автомобиль (
-    ID_автомобиля INT PRIMARY KEY AUTO_INCREMENT,
-    Гос_номер VARCHAR(10) NOT NULL,
-    Марка VARCHAR(50),
-    Модель VARCHAR(50),
-    Вид_топлива VARCHAR(20),
-    Цвет VARCHAR(20),
-    Личный BOOLEAN
+CREATE TABLE Passengers (
+    PassengerID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Surname VARCHAR(50),
+    BirthDate DATE,
+    Gender CHAR(1),
+    PhoneNumber VARCHAR(15),
+    Email VARCHAR(100)
 );
 
--- Создание таблицы Водитель
-CREATE TABLE Водитель (
-    Позывной_водителя INT PRIMARY KEY AUTO_INCREMENT,
-    Фамилия VARCHAR(50),
-    Имя VARCHAR(50),
-    Отчество VARCHAR(50),
-    Номер_телефона VARCHAR(20),
-    Состояние VARCHAR(20),
-    ID_автомобиля INT,
-    FOREIGN KEY (ID_автомобиля) REFERENCES Автомобиль(ID_автомобиля)
+CREATE TABLE Tickets (
+    TicketID INT PRIMARY KEY,
+    PassengerID INT,
+    TrainID INT,
+    SeatNumber VARCHAR(10),
+    DateOfJourney DATE,
+    Price DECIMAL(10, 2),
+    DepartureStationID INT,
+    ArrivalStationID INT,
+    FOREIGN KEY (PassengerID) REFERENCES Passengers(PassengerID),
+    FOREIGN KEY (TrainID) REFERENCES Trains(TrainID),
+    FOREIGN KEY (DepartureStationID) REFERENCES Stations(StationID),
+    FOREIGN KEY (ArrivalStationID) REFERENCES Stations(StationID)
 );
 
--- Создание таблицы Оператор
-CREATE TABLE Оператор (
-    Позывной_оператора INT PRIMARY KEY AUTO_INCREMENT,
-    Фамилия VARCHAR(50),
-    Имя VARCHAR(50),
-    Отчество VARCHAR(50),
-    Номер_телефона VARCHAR(20),
-    Пароль VARCHAR(50)
+CREATE TABLE Trains (
+    TrainID INT PRIMARY KEY,
+    TrainNumber VARCHAR(10),
+    Route VARCHAR(255)
 );
 
--- Создание таблицы Скидки
-CREATE TABLE Скидки (
-    ID_скидки INT PRIMARY KEY AUTO_INCREMENT,
-    Номер_карты VARCHAR(20),
-    Скидка DECIMAL(5,2)
+CREATE TABLE Stations (
+    StationID INT PRIMARY KEY,
+    StationName VARCHAR(100),
+    City VARCHAR(100),
+    State VARCHAR(100)
 );
 
--- Создание таблицы Заказ
-CREATE TABLE Заказ (
-    ID_заказа INT PRIMARY KEY AUTO_INCREMENT,
-    Состояние VARCHAR(20),
-    Дата_и_время_поступления DATETIME,
-    Номер_телефона VARCHAR(20),
-    Улица VARCHAR(50),
-    Дом VARCHAR(10),
-    Багаж BOOLEAN,
-    Начальная_стоимость DECIMAL(10,2),
-    Стоимость_со_скидкой DECIMAL(10,2),
-    Комментарий_водителю TEXT,
-    Позывной_водителя INT,
-    Позывной_оператора INT,
-    ID_скидки INT,
-    FOREIGN KEY (Позывной_водителя) REFERENCES Водитель(Позывной_водителя),
-    FOREIGN KEY (Позывной_оператора) REFERENCES Оператор(Позывной_оператора),
-    FOREIGN KEY (ID_скидки) REFERENCES Скидки(ID_скидки)
-);
-
--- Создание таблицы Точки
-CREATE TABLE Точки (
-    ID_заказа INT,
-    Улица VARCHAR(50),
-    Дом VARCHAR(10),
-    PRIMARY KEY (ID_заказа, Улица, Дом),
-    FOREIGN KEY (ID_заказа) REFERENCES Заказ(ID_заказа)
-);
-
--- Создание таблицы Поездка
-CREATE TABLE Поездка (
-    ID_поездки INT PRIMARY KEY AUTO_INCREMENT,
-    ID_заказа INT,
-    Дата_и_время_поездки DATETIME,
-    Длительность INT,
-    Расстояние DECIMAL(10,2),
-    Стоимость DECIMAL(10,2),
-    FOREIGN KEY (ID_заказа) REFERENCES Заказ(ID_заказа)
-);
-
--- Создание таблицы Отзывы
-CREATE TABLE Отзывы (
-    ID_отзыва INT PRIMARY KEY AUTO_INCREMENT,
-    ID_поездки INT,
-    Оценка INT CHECK (Оценка BETWEEN 1 AND 5),
-    Комментарий TEXT,
-    Дата_отзыва DATETIME,
-    FOREIGN KEY (ID_поездки) REFERENCES Поездка(ID_поездки)
+CREATE TABLE Routes (
+    RouteID INT PRIMARY KEY,
+    TrainID INT,
+    StationID INT,
+    ArrivalTime TIME,
+    DepartureTime TIME,
+    FOREIGN KEY (TrainID) REFERENCES Trains(TrainID),
+    FOREIGN KEY (StationID) REFERENCES Stations(StationID)
 );
 ```
 
-### 3. Ввод исходных данных
+## 3. Введение исходных данных
 
 ```sql
--- Ввод данных в таблицу Автомобиль
-INSERT INTO Автомобиль (Гос_номер, Марка, Модель, Вид_топлива, Цвет, Личный) VALUES
-('A123BC', 'Toyota', 'Camry', 'Бензин', 'Белый', TRUE),
-('B456CD', 'Honda', 'Accord', 'Дизель', 'Черный', FALSE),
-('C789DE', 'Ford', 'Focus', 'Электро', 'Синий', TRUE);
+-- Таблица Passengers
+INSERT INTO Passengers VALUES (1, 'John', 'Doe', '1985-02-15', 'M', '123-456-7890', 'john.doe@example.com');
+INSERT INTO Passengers VALUES (2, 'Jane', 'Smith', '1990-05-20', 'F', '234-567-8901', 'jane.smith@example.com');
+-- Добавьте еще 15-18 записей
 
--- Ввод данных в таблицу Водитель
-INSERT INTO Водитель (Фамилия, Имя, Отчество, Номер_телефона, Состояние, ID_автомобиля) VALUES
-('Иванов', 'Иван', 'Иванович', '1234567890', 'Работает', 1),
-('Петров', 'Петр', 'Петрович', '0987654321', 'Работает', 2),
-('Сидоров', 'Сидор', 'Сидорович', '1122334455', 'Работает', 3);
+-- Таблица Trains
+INSERT INTO Trains VALUES (1, 'A123', 'City A - City B');
+INSERT INTO Trains VALUES (2, 'B456', 'City B - City C');
+-- Добавьте еще 15-18 записей
 
--- Ввод данных в таблицу Оператор
-INSERT INTO Оператор (Фамилия, Имя, Отчество, Номер_телефона, Пароль) VALUES
-('Смирнов', 'Сергей', 'Сергеевич', '6677889900', 'pass123'),
-('Кузнецова', 'Анна', 'Алексеевна', '5566778899', 'pass456');
+-- Таблица Stations
+INSERT INTO Stations VALUES (1, 'Central Station', 'City A', 'State A');
+INSERT INTO Stations VALUES (2, 'West Station', 'City B', 'State B');
+-- Добавьте еще 15-18 записей
 
--- Ввод данных в таблицу Скидки
-INSERT INTO Скидки (Номер_карты, Скидка) VALUES
-('1234', 10.00),
-('5678', 15.00),
-('9101', 5.00);
+-- Таблица Tickets
+INSERT INTO Tickets VALUES (1, 1, 1, 'A1', '2023-06-01', 100.00, 1, 2);
+INSERT INTO Tickets VALUES (2, 2, 2, 'B1', '2023-06-02', 120.00, 2, 1);
+-- Добавьте еще 15-18 записей
 
--- Ввод данных в таблицу Заказ
-INSERT INTO Заказ (Состояние, Дата_и_время_поступления, Номер_телефона, Улица, Дом, Багаж, Начальная_стоимость, Стоимость_со_скидкой, Комментарий_водителю, Позывной_водителя, Позывной_оператора, ID_скидки) VALUES
-('Новый', '2024-05-01 08:30:00', '1234567890', 'Ленина', '10', TRUE, 500.00, 450.00, 'Аккуратно', 1, 1, 1),
-('Выполнен', '2024-05-01 09:00:00', '0987654321', 'Кирова', '20', FALSE, 300.00, 255.00, 'Быстро', 2, 2, 2),
-('Отменен', '2024-05-01 09:30:00', '1122334455', 'Советская', '30', TRUE, 400.00, 380.00, 'Ожидание', 3, 1, 3);
-
--- Ввод данных в таблицу Точки
-INSERT INTO Точки (ID_заказа, Улица, Дом) VALUES
-(1, 'Ленина', '10'),
-(1, 'Красная', '15'),
-(2, 'Кирова', '20'),
-(2, 'Мира', '25'),
-(3, 'Советская', '30');
-
--- Ввод данных в таблицу Поездка
-INSERT INTO Поездка (ID_заказа, Дата_и_время_поездки, Длительность, Расстояние, Стоимость) VALUES
-(1, '2024-05-01 08:40:00', 30, 10.5, 450.00),
-(2, '2024-05-01 09:10:00', 20, 7.3, 255.00);
-
--- Ввод данных в таблицу Отзывы
-INSERT INTO Отзывы (ID_поездки, Оценка, Комментарий, Дата_отзыва) VALUES
-(1, 5, 'Отличная поездка!', '2024-05-01 10:00:00'),
-(2, 4, 'Хорошо, но можно лучше.', '2024-05-01 11:00:00');
+-- Таблица Routes
+INSERT INTO Routes VALUES (1, 1, 1, '08:00', '08:15');
+INSERT INTO Routes VALUES (2, 1, 2, '09:00', '09:15');
+-- Добавьте еще 15-18 записей
 ```
 
-### 4. Выполнение заданий
+## 4. Выполнение заданий
 
-#### Индексы
+### Индексы
+
+Создание индексов для ускорения запросов.
 
 ```sql
--- Создание индекса на таблицу Заказ по полю Номер_телефона
-CREATE INDEX idx_номер_телефона ON Заказ (Номер_телефона);
-
--- Создание уникального индекса на таблицу Автомобиль по полю Гос_номер
-CREATE UNIQUE INDEX idx_гос_номер ON Автомобиль (Гос_номер);
+CREATE INDEX idx_passenger_name ON Passengers(Name);
+CREATE INDEX idx_ticket_date ON Tickets(DateOfJourney);
 ```
 
-#### Ограничения в базах данных
+### Ограничения в базах данных
+
+Добавление ограничений на таблицы.
 
 ```sql
--- Ограничение на таблицу Водитель по полю Номер_телефона, чтобы номера были уникальны
-ALTER TABLE Водитель ADD CONSTRAINT unq_
+ALTER TABLE Passengers
+ADD CONSTRAINT chk_gender CHECK (Gender IN ('M', 'F'));
 
-номер_телефона UNIQUE (Номер_телефона);
-
--- Ограничение на таблицу Заказ по полю Стоимость_со_скидкой, чтобы стоимость не была отрицательной
-ALTER TABLE Заказ ADD CONSTRAINT chk_стоимость_со_скидкой CHECK (Стоимость_со_скидкой >= 0);
+ALTER TABLE Tickets
+ADD CONSTRAINT chk_price CHECK (Price > 0);
 ```
 
-#### Представления в SQL
+### Представления в SQL
+
+Создание представления для получения информации о билетах с пассажирами.
 
 ```sql
--- Создание представления для просмотра завершенных заказов
-CREATE VIEW Завершенные_заказы AS
-SELECT * FROM Заказ
-WHERE Состояние = 'Выполнен';
+CREATE VIEW TicketInfo AS
+SELECT 
+    t.TicketID, 
+    p.Name, 
+    p.Surname, 
+    t.DateOfJourney, 
+    t.SeatNumber, 
+    t.Price
+FROM 
+    Tickets t
+JOIN 
+    Passengers p ON t.PassengerID = p.PassengerID;
 ```
 
-#### Оконные функции
+### Оконные функции
+
+Примеры трех оконных функций.
 
 ```sql
--- Пример использования оконной функции RANK()
-SELECT ID_заказа, Номер_телефона, Начальная_стоимость,
-RANK() OVER (ORDER BY Начальная_стоимость DESC) as Ранг
-FROM Заказ;
+-- Оконная функция ROW_NUMBER
+SELECT 
+    PassengerID, 
+    Name, 
+    ROW_NUMBER() OVER (ORDER BY Name) as RowNum
+FROM 
+    Passengers;
 
--- Пример использования оконной функции ROW_NUMBER()
-SELECT ID_заказа, Номер_телефона, Начальная_стоимость,
-ROW_NUMBER() OVER (ORDER BY Дата_и_время_поступления) as Номер
-FROM Заказ;
+-- Оконная функция RANK
+SELECT 
+    PassengerID, 
+    Name, 
+    RANK() OVER (ORDER BY Name) as Rank
+FROM 
+    Passengers;
 
--- Пример использования оконной функции SUM() OVER
-SELECT ID_заказа, Номер_телефона, Начальная_стоимость,
-SUM(Начальная_стоимость) OVER (PARTITION BY Позывной_водителя) as Общая_стоимость
-FROM Заказ;
+-- Оконная функция SUM
+SELECT 
+    TrainID, 
+    DateOfJourney, 
+    SUM(Price) OVER (PARTITION BY TrainID ORDER BY DateOfJourney) as RunningTotal
+FROM 
+    Tickets;
 ```
 
-#### Временные таблицы
+### Временные таблицы (виртуальные таблицы)
+
+Пример создания временной таблицы.
 
 ```sql
--- Создание временной таблицы для хранения временных данных
-CREATE TEMPORARY TABLE Временная_таблица AS
-SELECT * FROM Заказ
-WHERE Состояние = 'Новый';
+CREATE TEMPORARY TABLE TempPassengers AS
+SELECT 
+    * 
+FROM 
+    Passengers
+WHERE 
+    Gender = 'M';
 ```
 
-### 5. Выполнение манипуляций с таблицами
+## Выполнение манипуляций с таблицами
 
-#### Фильтрация данных в SQL: WHERE
+### Фильтрация данных в SQL: WHERE
 
 ```sql
--- Фильтрация заказов по состоянию
-SELECT * FROM Заказ
-WHERE Состояние = 'Выполнен';
+SELECT * FROM Passengers WHERE Gender = 'F';
 ```
 
-#### Сортировка в SQL: ORDER BY
+### Сортировка в SQL: ORDER BY
 
 ```sql
--- Сортировка заказов по дате поступления
-SELECT * FROM Заказ
-ORDER BY Дата_и_время_поступления DESC;
+SELECT * FROM Passengers ORDER BY BirthDate DESC;
 ```
 
-#### Вставка и изменение данных в SQL
+### Вставка и изменение данных в SQL
 
 ```sql
--- Вставка нового заказа
-INSERT INTO Заказ (Состояние, Дата_и_время_поступления, Номер_телефона, Улица, Дом, Багаж, Начальная_стоимость, Стоимость_со_скидкой, Комментарий_водителю, Позывной_водителя, Позывной_оператора, ID_скидки)
-VALUES ('Новый', '2024-05-01 12:00:00', '2233445566', 'Победы', '50', FALSE, 600.00, 540.00, 'Без комментариев', 1, 2, 1);
+-- Вставка данных
+INSERT INTO Passengers (PassengerID, Name, Surname, BirthDate, Gender, PhoneNumber, Email) 
+VALUES (3, 'Alice', 'Johnson', '1988-03-15', 'F', '345-678-9012', 'alice.johnson@example.com');
 
--- Обновление состояния заказа
-UPDATE Заказ
-SET Состояние = 'Отменен'
-WHERE ID_заказа = 3;
+-- Обновление данных
+UPDATE Passengers 
+SET Email = 'new.email@example.com' 
+WHERE PassengerID = 1;
 ```
 
-#### Группировки и фильтрация в SQL: HAVING
+### Группировки и фильтрация в SQL: HAVING
 
 ```sql
--- Группировка заказов по водителю и фильтрация по общей стоимости
-SELECT Позывной_водителя, SUM(Начальная_стоимость) as Общая_стоимость
-FROM Заказ
-GROUP BY Позывной_водителя
-HAVING Общая_стоимость > 1000.00;
+SELECT Gender, COUNT(*) as NumberOfPassengers
+FROM Passengers
+GROUP BY Gender
+HAVING COUNT(*) > 1;
 ```
 
-#### Запрос данных из нескольких таблиц: JOIN
+### Запрос данных из нескольких таблиц: JOIN
 
 ```sql
--- Объединение данных из таблиц Заказ и Водитель
-SELECT Заказ.ID_заказа, Заказ.Номер_телефона, Водитель.Фамилия, Водитель.Имя
-FROM Заказ
-JOIN Водитель ON Заказ.Позывной_водителя = Водитель.Позывной_водителя;
+SELECT 
+    p.Name, 
+    p.Surname, 
+    t.SeatNumber, 
+    t.DateOfJourney, 
+    s.StationName as DepartureStation
+FROM 
+    Tickets t
+JOIN 
+    Passengers p ON t.PassengerID = p.PassengerID
+JOIN 
+    Stations s ON t.DepartureStationID = s.StationID;
 ```
 
-#### Типы соединений в SQL
+### Типы соединений в SQL
 
 ```sql
--- Левое соединение данных из таблиц Заказ и Скидки
-SELECT Заказ.ID_заказа, Заказ.Номер_телефона, Скидки.Скидка
-FROM Заказ
-LEFT JOIN Скидки ON Заказ.ID_скидки = Скидки.ID_скидки;
+-- INNER JOIN
+SELECT * FROM Tickets t INNER JOIN Passengers p ON t.PassengerID = p.PassengerID;
 
--- Правое соединение данных из таблиц Заказ и Скидки
-SELECT Заказ.ID_заказа, Заказ.Номер_телефона, Скидки.Скидка
-FROM Заказ
-RIGHT JOIN Скидки ON Заказ.ID_скидки = Скидки.ID_скидки;
+-- LEFT JOIN
+SELECT * FROM Passengers p LEFT JOIN Tickets t ON p.PassengerID = t.PassengerID;
+
+-- RIGHT JOIN
+SELECT * FROM Tickets t RIGHT JOIN Passengers p ON t.PassengerID = p.PassengerID;
 ```
 
-#### Подзапросы
+### Подзапросы
 
 ```sql
--- Подзапрос для получения заказов с максимальной стоимостью
-SELECT * FROM Заказ
-WHERE Начальная_стоимость = (SELECT MAX(Начальная_стоимость) FROM Заказ);
+SELECT * FROM Passengers 
+WHERE PassengerID IN (SELECT PassengerID FROM Tickets WHERE Price > 100);
 ```
 
-#### Транзакции
+### Транзакции
 
 ```sql
--- Пример транзакции
-START TRANSACTION;
+BEGIN TRANSACTION;
 
-UPDATE Водитель
-SET Состояние = 'Отдыхает'
-WHERE Позывной_водителя = 1;
+UPDATE Passengers SET PhoneNumber = '987-654-3210' WHERE PassengerID = 2;
 
-INSERT INTO Заказ (Состояние, Дата_и_время_поступления, Номер_телефона, Улица, Дом, Багаж, Начальная_стоимость, Стоимость_со_скидкой, Комментарий_водителю, Позывной_водителя, Позывной_оператора, ID_скидки)
-VALUES ('Новый', '2024-05-02 08:00:00', '3344556677', 'Садовая', '60', FALSE, 700.00, 630.00, 'Без комментариев', 2, 1, 2);
-
-COMMIT;
+IF @@ERROR = 0
+BEGIN
+    COMMIT TRANSACTION;
+END
+ELSE
+BEGIN
+    ROLLBACK TRANSACTION;
+END;
 ```
 
-#### Использование оператора CASE
+### Использование оператора CASE
 
 ```sql
--- Пример использования оператора CASE для классификации стоимости заказа
-SELECT ID_заказа, Номер_телефона, Начальная_стоимость,
-CASE
-    WHEN Начальная_стоимость < 300 THEN 'Дешево'
-    WHEN Начальная_стоимость BETWEEN 300 AND 600 THEN 'Средне'
-    ELSE 'Дорого'
-END AS Категория_стоимости
-FROM Заказ;
+SELECT 
+    PassengerID, 
+
+
+    Name, 
+    Gender, 
+    CASE 
+        WHEN Gender = 'M' THEN 'Male'
+        WHEN Gender = 'F' THEN 'Female'
+        ELSE 'Unknown'
+    END as GenderDescription
+FROM 
+    Passengers;
 ```
+
+## Заключение
+
+Все запросы были выполнены на основе созданной базы данных. В отчете представлены все необходимые данные и запросы, выполненные в соответствии с заданием.
